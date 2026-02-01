@@ -1,0 +1,21 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'helvetica neue';
+}
+html,
+body {
+    height: 100%;
+    width: 100%;
+    background-color: #151515;
+}
+
+
+.mouse-follower{
+    background-color: white;
+    height: 30px;
+    width: 30px;
+    border-radius: 50%;
+    position: absolute;
+}
