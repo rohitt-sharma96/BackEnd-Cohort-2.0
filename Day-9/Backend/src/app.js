@@ -1,10 +1,12 @@
 const express = require('express')
 const noteModel = require('./models/note.model')
+const path = require('path')
 const cors = require('cors')
 
 const app = express()
 app.use(express.json())
 app.use(cors());
+app.use(express.static('./public'))
 
 /* 
 POST /api/notes
@@ -63,5 +65,14 @@ app.patch('/api/notes/:id', async (req,res)=>{
         message: 'Note updated successfully.'
     })
 })
+//Iska kaam hai ki user galti se kisi dusre server pe request krde to humein kya dikhana ya hai 
+// Us api pe req. krde jo humne create hi nhi ki hai to us jagah pe hum ye api dikha skte hai
+app.use('*name', (req,res)=>{
+    res.sendFile(path.join(__dirname,"..","/public/index.html"))
+})
+
+
+
+
 
 module.exports = app;
