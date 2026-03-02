@@ -9,6 +9,8 @@ export function useAuth() {
 
     const { user, setUser, loading, setLoading } = context
 
+    //Yaha pe user ka data aa rha hai LoginPage se
+    //handleLogin ko call krke arugment paas kr rhe hai
     const handleLogin = async (username,password) => {
 
         setLoading(true)
@@ -20,7 +22,8 @@ export function useAuth() {
         setLoading(false)
 
     }
-
+    //Yaha pe user ka data aa rha hai Register page se
+    // handleRegister k call krke data argument paas kr rhe h
     const handleRegister = async (username, email, password) => {
 
         setLoading(true)
