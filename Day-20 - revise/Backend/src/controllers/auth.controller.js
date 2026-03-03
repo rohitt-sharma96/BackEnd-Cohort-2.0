@@ -52,8 +52,10 @@ async function loginController(req, res) {
    email
    password
     */
-    const user = await userModel.findOne({ $or: [{ username: username }, { email: email }] })
+    const user = await userModel.findOne({ $or: [{ username: username }, 
+                        { email: email }] }).select("+password")
 
+                    // .select force krta hai jo password allow nhi h usko bhi leke aao
     if (!user) {
         return res.status(404).json({
             message: "user not found"
