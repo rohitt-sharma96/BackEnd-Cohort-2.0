@@ -1,8 +1,11 @@
 // const express = require('express')
 // const authRouter = express.Router() //Old method
 
-const {Router}  = require('express') //New method
+const { Router }  = require('express') //New method
 const authController = require('../controller/auth.controller')
+
+
+const authMiddleware = require("../middlewares/auth.middleware")
 
 const router = Router();
 
@@ -23,5 +26,22 @@ router.post("/register",authController.registerUser)
  */
 router.post("/login",authController.loginUser)
 
+
+
+/**
+ * @route /api/auth/get-me
+ * @description  this api will give user information 
+ * @access private
+ */
+router.get("/get-me",authMiddleware.authUser, authController.getMe)
+
+
+/**
+ * @route /api/auth/logout
+ * @description this api will logout the user by clearing the cookie
+ * @access private
+ */
+
+router.get("/logout",authController.logoutUser)
 
 module.exports = router
