@@ -1,18 +1,21 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import FaceExpression from './features/expression/components/FaceExpression'
-import './App.css'
-
-
+import {Router, RouterProvider} from 'react-router'
+import {router} from './app.routes'
+import "./features/shared/style/global.scss"
+import { useContext } from 'react'
+import { AuthProvider } from './features/auth/auth.context'
 
 function App() {
-  const [count, setCount] = useState(0)
+
+  const context = useContext(AuthProvider)
 
   return (
     
     <>
-      <FaceExpression />
+  <AuthProvider>
+   <RouterProvider router={router} />
+
+  </AuthProvider>
+
     </>
    
   )
