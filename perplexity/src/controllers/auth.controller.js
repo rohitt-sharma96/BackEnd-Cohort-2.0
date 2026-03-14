@@ -4,6 +4,12 @@ import { sendEmail } from "../services/mail.service.js";
 
 
 
+/**
+ * @desc register a new user
+ * @route POST /api/auth/register
+ * @access Public
+ * @body {username,email,password}
+ */
 export async function registerUser(req, res, next) {
 
     const { username, email, password } = req.body;
@@ -16,7 +22,7 @@ export async function registerUser(req, res, next) {
         return res.status(409).json({
             message: "user already exists",
             success: false,
-            err: "user already exists"
+            err: "already exists"
         })
     }
 
@@ -27,15 +33,19 @@ export async function registerUser(req, res, next) {
         password
     })
 
+    const emailVerificationToken = jwt.sign({ email: user.email }, process.env.JWT_SECRET_KEY)
 
     //text optional rehta hai
     await sendEmail({
         to: email,
         subject: "Welcome to Perplexity!",
         html:
-        `
+            `
             <p>Hi ${username}</p>
             <p>Thankyou for registering at <strong>Perplexity</strong>. We're excited to have you on board!</p>
+            <p>Please verify you email address by clicking the link below:</p>
+            <a href="http://localhost:3000/api/auth/verify-email?token=${emailVerificationToken}">Verify Email</a>
+            <p>If you did not create an account, Ignore this email.</p>
             <p>Best regards,<br>The Perplexity Team<p>
         `
     })
@@ -50,3 +60,135 @@ export async function registerUser(req, res, next) {
     })
 
 }
+
+/**
+ * @desc login user and return JWT token
+ * @route POST /api/auth/login
+ * @access Public
+ * @body {email,password}
+ */
+export async function loginUser(req, res) {
+    const { email, password } = req.body
+
+    const user = await userModel.findOne({ email })
+
+    if (!user) {
+        return res.status(400).json({
+            message: "Invalid email or password",
+            success: false,
+            err: "User not found"
+        })
+    }
+
+    const isPasswordMatch = await user.comparePassword(password)
+
+    if (!isPasswordMatch) {
+        return res.status(400).json({
+            message: "Invalid email or password",
+            success: false,
+            err: "Incorrect Password"
+        })
+    }
+
+    if (!user.verified) {
+        return res.status(400).json({
+            message: "Please verify your email before logging in",
+            success: false,
+            err: "Email not verified"
+        })
+    }
+
+    const token = jwt.sign({
+        id: user._id,
+        username: user.username
+    }, process.env.JWT_SECRET_KEY, { expiresIn: "7d" })
+
+    res.cookie("token", token)
+
+    res.status(200).json({
+        message: "login successfully",
+        success: true,
+        user: {
+            id: user._id,
+            username: user.username,
+            email: user.email
+        }
+    })
+}
+
+
+
+/**
+ * @desc get current logged in user's information
+ * @route GET /api/auth/get-me
+ * @access Private
+ */
+export async function getMe(req, res) {
+    const decoded = req.user
+    const userId = decoded.id
+
+
+    const user = await userModel.findById(userId).select("-password")
+
+    if (!user) {
+        return res.status(404).json({
+            message: "User not found",
+            success: false,
+            err: "user not found"
+        })
+    }
+
+    res.status(200).json({
+        message: "User details fetched successfully",
+        success: true,
+        user
+    })
+
+}
+
+
+
+/**
+ * @desc verify user's email address
+ * @route GET /api/auth/verify-email   //?token=sdfadsosowodnsoeslwodkwoswosslsdlfssl
+ * @access Public
+ * @query {token}
+ */
+export async function verifyEmail(req, res) {
+    const { token } = req.query
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY)
+
+        const user = await userModel.findOne({ email: decoded.email })
+
+        if (!user) {
+            return res.status(400).json({
+                message: "Invalid Token",
+                success: false,
+                err: "user not found"
+            })
+        }
+
+
+        user.verified = true
+        await user.save()
+
+        const html =
+            `
+            <h1>Email verified successfully! </h1>
+            <p>You email has been verified. You can now login to your account.</p>
+            <a href="http://localhost:3000/api/auth/login">Go to Login</a>
+    
+        `
+        return res.send(html)
+    }
+    catch (err) {
+        return res.status(400).json({
+            message: "Invalid or expired Token",
+            success: false,
+            err: err.message
+        })
+    }
+}
+

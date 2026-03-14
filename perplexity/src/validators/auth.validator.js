@@ -19,3 +19,18 @@ export const registerValidator = [
     body("password").isLength({min:6,max:12}).withMessage("password should be between 6 to 12 characters"),
     validate
 ]
+
+
+export const loginValidator = [
+
+    body("email")
+    .trim()
+    .notEmpty().withMessage("Email is required")
+    .isEmail().withMessage("Please provide a valid email"),
+
+    body("password").notEmpty().withMessage("Password is required"),
+    validate
+]
+
+
+
